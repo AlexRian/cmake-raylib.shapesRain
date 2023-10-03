@@ -15,8 +15,8 @@ class Block : public PhysicsEntity {
     using PhysicsEntity::PhysicsEntity;
 public:
     void draw() {
-        Rectangle rec = { m_position.x, m_position.y, 200, 120 };
-        DrawRectanglePro(rec, { 100, 60 }, getBodyAngle(), RED);
+        Rectangle rec = { m_position.x, m_position.y, 20, 20 };
+        DrawRectanglePro(rec, { 10, 10 }, getBodyAngle(), RED);
     }
 };
 
