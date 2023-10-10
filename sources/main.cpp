@@ -7,23 +7,6 @@
 #include "./settings.hpp"
 #include "./entities.hpp"
 
-void generateBoxes(Physics* physics, std::vector<Block*>* boxes)
-{
-    for (size_t i = 0; i < 100; i++)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-        if (!physics->getWorld()->IsLocked()) {
-            Block* box = new Block{
-                Settings::screenWidth / 2, 90, 90,
-                physics->getBody("Block", Settings::screenWidth / 2, 200.0f, 90, 20, 20, true, Box, {.5f, 0.3f, 0})
-            };
-
-            boxes->push_back(box);
-        }
-    }
-}
-
 int main(void)
 {
     InitWindow(Settings::screenWidth, Settings::screenHeight, "Game");
@@ -34,15 +17,32 @@ int main(void)
 
     std::vector<Block*> boxes;
 
-    Ground ground{ 
-        Settings::screenWidth / 2, Settings::screenHeight, 180,
-        physics.getBody("Ground", Settings::screenWidth / 2, Settings::screenHeight, 180, Settings::screenWidth, 60, false, Box, {0.1f, 0.1f, 0.1f})
+    Ground bottom{ 
+        Settings::screenWidth / 2, Settings::screenHeight - 200, 180,
+        physics.getBody("Ground", Settings::screenWidth / 2, Settings::screenHeight - 200, 180, 200, 30, false, Box, {0.1f, 0.1f, 0.1f})
     };
 
-    std::thread boxesGeneratorThread(generateBoxes, &physics, &boxes);
+    Wall leftWall{
+        Settings::screenWidth / 2 - 100, Settings::screenHeight - 300, 90,
+        physics.getBody("Wall", Settings::screenWidth / 2 - 100, Settings::screenHeight - 300, 180, 30, 200, false, Box, {0.1f, 0.1f, 0.1f})
+    };
+
+    Wall rightWall{
+        Settings::screenWidth / 2 + 100, Settings::screenHeight - 300, 90,
+        physics.getBody("Wall", Settings::screenWidth / 2 + 100, Settings::screenHeight - 300, 180, 30, 200, false, Box, {0.1f, 0.1f, 0.1f})
+    };
 
     while (!WindowShouldClose())
     {
+        if (boxes.size() < 300) {
+            Block* box = new Block{
+                Settings::screenWidth / 2, 90, 90,
+                physics.getBody("Block", Settings::screenWidth / 2, 0, 90, 10, 10, true, Box, {.5f, 0.3f, 0})
+            };
+
+            boxes.push_back(box);
+        }
+
         physics.makeWorldStep();
 
         for each (Block* box in boxes)
@@ -50,7 +50,13 @@ int main(void)
             box->applyPhysicsPosition();
         }
 
-        ground.applyPhysicsPosition();
+        bottom.applyPhysicsPosition();
+        leftWall.applyPhysicsPosition();
+        rightWall.applyPhysicsPosition();
+
+        if (boxes.size() > 299) {
+            bottom.makeOpenAnimationStep();
+        }
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
@@ -58,7 +64,9 @@ int main(void)
             {
                 box->draw();
             }
-            ground.draw();
+            bottom.draw();
+            leftWall.draw();
+            rightWall.draw();
             debug.draw();
         EndDrawing();
     }
